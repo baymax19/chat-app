@@ -1,0 +1,117 @@
+
+<html>
+<head>
+<link rel="stylesheet" href="./css/main.css"/>
+
+</head>
+<body>
+    <div class="chat">
+        <input type="text" id="chat-name" class="chat-name"  placeholder="Enter your name"></input>
+        <div class="chat-messages"  id="chat-messages">
+            <div class="chat-message">
+                   
+                  
+            </div>
+            <div class="chat-message">
+                
+
+         </div>
+        </div>
+        <textarea id="textarea" placeholder="enter the message" >
+
+        </textarea>
+        <!-- <input type="button" onclick="send()" value="Send"/> -->
+        <div class="chat-status">Status : <span id="idle">Idle</span>
+
+        </div>
+    </div>
+    <script src="http://127.0.0.1:8080/socket.io/socket.io.js">
+        </script>
+
+        <script>
+            
+        
+                (function()
+                {
+                        var getNodes=function(s){
+
+                            return document.querySelector(s);
+                        }
+
+                    chatname=document.getElementById("chat-name");
+                    textarea=document.getElementById("textarea");
+                    console.log(textarea);
+                    messages=document.querySelector(".chat-messages");
+                    status=document.getElementById("idle").innerHTML;
+                    console.log(status);// gives inner text value
+                    setDefault=status.value;
+                    setStatus=function(s)
+                    {
+                        document.getElementById("idle").innerHTML=s;
+                        if(s!=setDefault){
+                            var dealy=setTimeout(function(){
+                                  setStatus("Idle");
+                                  clearInterval();  
+                            },5000)
+                        }
+                    }
+                    setStatus("Testing");
+                   
+                    
+                    try{
+                        var socket=io.connect("http://127.0.0.1:8080")
+                    }
+                    catch(e)
+                    {
+
+                    }
+                    // console.log(socket)
+                    if(socket !== undefined)
+                    {
+
+
+                            socket.on("status",function(data)
+                            {
+                                    setStatus((typeof data === "object") ? data.msg :data)
+                                    if(data.clear==true)
+                                        textarea.value="";
+                            })
+
+
+                            socket.on("output",function(data)
+                            {
+                            
+                                if(data.length)
+                                {
+                                    for(var i=0;i<data.length;i++)
+                                    {
+                                        console.log(data[i].name+"client side"+data[i].msg)
+                                        var message=document.createElement("div");
+                                        message.setAttribute("class","chat-message");
+                                        message.textContent=data[i].name+" :"+data[i].msg;
+                                        
+                                        messages.appendChild(message);
+                                        messages.insertBefore(message,messages.firstChild);
+                                    }
+                                }
+                            })
+
+                            textarea.addEventListener('keydown',function(event)
+                            {
+                                if(event.which===13 && event.shiftKey === false)   { 
+                                    console.log(chatname.value+"this is the "+textarea.value);
+                                    socket.emit("input",{"name":chatname.value,"msg":textarea.value});
+                                    textarea.value="";
+                                }
+                                // event.preventDefault();
+                                    
+                            });
+                          
+
+                        }    
+                })();
+        
+        </script>
+</body>
+
+</html>
